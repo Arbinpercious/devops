@@ -40,3 +40,10 @@ jobs:
     - name: Create deployment report
       run: echo "Build successful at $(date)" > build-report.txt
       if: success()
+
+    - name: Upload report artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: build-report
+        path: build-report.txt
+      if: success()
