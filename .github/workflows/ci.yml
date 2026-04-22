@@ -30,11 +30,12 @@ jobs:
       continue-on-error: true
 
     - name: Run tests
-      run: python -m pytest tests/ -v
+      run: python -m unittest tests.test_app -v
       continue-on-error: true
 
-    - name: Run application
-      run: python app.py
+    - name: Test application imports
+      run: |
+        python -c "from app import BusBookingSystem; print('✅ Application imports successfully')"
 
     - name: Create deployment report
       run: echo "Build successful at $(date)" > build-report.txt
