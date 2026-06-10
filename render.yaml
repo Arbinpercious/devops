@@ -3,10 +3,35 @@ services:
     name: bus-booking-system
     env: python
     plan: free
-    buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn wsgi:app
+    buildCommand: ""
+    startCommand: python bus_booking.py
     envVars:
+      # Application Configuration
+      - key: ENVIRONMENT
+        value: production
+      - key: APP_VERSION
+        value: 2.0.0
+      - key: DEBUG
+        value: "False"
+      - key: BOOKING_START_ID
+        value: 1000
+      
+      # Custom Bus Configuration (Optional - uncomment and modify as needed)
+      # - key: BUS_B001_NAME
+      #   value: "Luxury Express"
+      # - key: BUS_B001_SEATS
+      #   value: "10"
+      # - key: BUS_B001_PRICE
+      #   value: "800"
+      # - key: BUS_B002_NAME
+      #   value: "City Flyer"
+      # - key: BUS_B002_SEATS
+      #   value: "8"
+      # - key: BUS_B002_PRICE
+      #   value: "650"
+      
+      # Python Configuration
       - key: PYTHON_VERSION
-        value: 3.11
+        value: 3.11.0
       - key: PYTHONUNBUFFERED
         value: "True"
