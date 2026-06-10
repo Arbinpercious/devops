@@ -1,21 +1,60 @@
 """
-Mini CLI-based Bus Booking System
+Mini CLI-based Bus Booking System with Environment Variables Support
 Uses only core Python data structures (dict, list, tuple, set)
 """
 
+import os
+import sys
+
 class BusBookingSystem:
     def __init__(self):
-        # Store buses: {bus_id: {'name': str, 'seats': int, 'price': float}}
-        self.buses = {
+        # Load configuration from environment variables
+        self.buses = self._load_buses_from_env()
+        self.bookings = {}
+        self.booking_counter = self._get_booking_counter()
+        
+    def _load_buses_from_env(self):
+        """Load bus configuration from environment variables"""
+        # Default buses (fallback if no env vars)
+        default_buses = {
             'B001': {'name': 'Express 101', 'total_seats': 5, 'price': 500},
             'B002': {'name': 'Super Fast 202', 'total_seats': 5, 'price': 600},
             'B003': {'name': 'Comfort 303', 'total_seats': 5, 'price': 700},
         }
         
-        # Store bookings: {booking_id: {'bus_id': str, 'seat': int, 'passenger': str}}
-        self.bookings = {}
-        self.booking_counter = 1000
-
+        buses = {}
+        
+        # Check for custom bus configurations in environment variables
+        bus_keys = [key for key in os.environ.keys() if key.startswith('BUS_')]
+        
+        if bus_keys:
+            # Parse environment variables for buses
+            bus_ids = set()
+            for key in bus_keys:
+                parts = key.split('_')
+                if len(parts) >= 2:
+                    bus_ids.add(parts[1])
+            
+            for bus_id in bus_ids:
+                bus_name = os.environ.get(f'BUS_{bus_id}_NAME', f'Bus {bus_id}')
+                total_seats = int(os.environ.get(f'BUS_{bus_id}_SEATS', 5))
+                price = float(os.environ.get(f'BUS_{bus_id}_PRICE', 500))
+                buses[bus_id] = {
+                    'name': bus_name,
+                    'total_seats': total_seats,
+                    'price': price
+                }
+            
+            if buses:
+                return buses
+        
+        # Fallback to default buses
+        return default_buses
+    
+    def _get_booking_counter(self):
+        """Get starting booking counter from environment variable"""
+        return int(os.environ.get('BOOKING_START_ID', 1000))
+    
     def display_buses(self):
         """Display all available buses"""
         print("\n" + "="*60)
@@ -71,12 +110,8 @@ class BusBookingSystem:
             return False, f"❌ Booking ID {booking_id} not found!"
         
         booking = self.bookings[booking_id]
-        bus_id = booking['bus_id']
-        seat = booking['seat']
-        passenger = booking['passenger']
-        
         del self.bookings[booking_id]
-        return True, f"✅ Booking {booking_id} cancelled! Seat {seat} is now available."
+        return True, f"✅ Booking {booking_id} cancelled! Seat {booking['seat']} is now available."
 
     def view_bookings(self):
         """Display all current bookings"""
@@ -91,11 +126,25 @@ class BusBookingSystem:
             bus_info = self.buses[details['bus_id']]
             print(f"Booking ID: {booking_id} | Bus: {bus_info['name']} | Seat: {details['seat']} | Passenger: {details['passenger']} | Price: ₹{bus_info['price']}")
         print("="*80 + "\n")
+    
+    def show_config(self):
+        """Display current configuration from environment variables"""
+        print("\n" + "="*60)
+        print("CURRENT CONFIGURATION")
+        print("="*60)
+        print(f"Booking Start ID: {self.booking_counter}")
+        print(f"Environment: {os.environ.get('ENVIRONMENT', 'development')}")
+        print(f"App Version: {os.environ.get('APP_VERSION', '1.0.0')}")
+        print("="*60 + "\n")
 
 
 def main():
     """Main CLI menu"""
     system = BusBookingSystem()
+    
+    # Show configuration on startup if DEBUG mode is enabled
+    if os.environ.get('DEBUG', 'False').lower() == 'true':
+        system.show_config()
     
     while True:
         print("\n" + "🚌 BUS BOOKING SYSTEM 🚌".center(40))
@@ -105,10 +154,11 @@ def main():
         print("3. Book a Seat")
         print("4. View My Bookings")
         print("5. Cancel Booking")
-        print("6. Exit")
+        print("6. Show Configuration")
+        print("7. Exit")
         print("-" * 40)
         
-        choice = input("Enter your choice (1-6): ").strip()
+        choice = input("Enter your choice (1-7): ").strip()
         
         if choice == '1':
             system.display_buses()
@@ -141,6 +191,9 @@ def main():
                 print("❌ Please enter a valid Booking ID!")
         
         elif choice == '6':
+            system.show_config()
+        
+        elif choice == '7':
             print("\n👋 Thank you for using Bus Booking System! Goodbye!\n")
             break
         
